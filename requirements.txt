@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+langchain
+langchain-community
+langchain-groq
+duckdb
+duckdb-engine
+sqlalchemy
+python-dotenv
+pandas
