@@ -10,6 +10,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from src.core.rate_limit import limiter
 
 from .api.endpoint.query import router as query_router
+from .api.endpoint.chat import router as chat_router
 from .chains.sql_chain import SQLChainManager
 from .core.database import create_services
 from .core.logger import logger
@@ -66,6 +67,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # ty
 app.add_middleware(SlowAPIMiddleware)
 
 app.include_router(query_router, prefix="/api", tags=["query"])
+app.include_router(chat_router, prefix="/api", tags=["chat"])
 
 
 @app.get("/")
