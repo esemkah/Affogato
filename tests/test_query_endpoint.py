@@ -184,3 +184,37 @@ class TestQueryEndpoint:
         # Last request should be rate limited
         assert response is not None
         assert response.status_code == 429
+
+    @patch("src.main.services", new_callable=lambda: (Mock(), Mock()))
+    def test_query_endpoint_show_all_tables_nlq(self, mock_services, client):
+        """Test successful NLQ query for showing all tables."""
+        mock_db, mock_chain = mock_services
+
+        # Mock the NLQ conversion to return SHOW TABLES
+        mock_chain.natural_language_to_sql.return_value = "SHOW TABLES;"
+
+        # Mock the database execution to return table list
+        mock_db.execute_query.return_value = [
+            {"name": "users"},
+            {"name": "products"},
+            {"name": "orders"}
+        ]
+
+        with patch("src.api.endpoint.query.get_services", return_value=mock_services):
+            response = client.post(
+                "/api/query",
+                json={"question": "tampilkan semua table", "use_nlq": True}
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "query" in data
+        assert "results" in data
+        assert data["query"] == "SHOW TABLES;"
+        assert len(data["results"]) == 3
+        assert data["results"][0]["name"] == "users"
+        assert data["results"][1]["name"] == "products"
+        assert data["results"][2]["name"] == "orders"
+
+        mock_chain.natural_language_to_sql.assert_called_once_with("tampilkan semua table")
+        mock_db.execute_query.assert_called_once_with("SHOW TABLES;")
